@@ -1,0 +1,83 @@
+{
+  "protocol": {
+    "name": "conditional_fixed_114_cross_pair_walk_forward_v1",
+    "version": 1,
+    "as_of": "2026-08-26",
+    "research_status_verdict": "NOT VALIDATED",
+    "claim_scope": "causal_historical_allocator_diagnostic_conditional_on_ex_post_fixed_114",
+    "universe_is_point_in_time": false,
+    "historical_holdout_is_untouched": false
+  },
+  "inputs": {
+    "v8_root": "outputs/pair_strategy_v8_pit_lineage_next_close_v3_2026-08-26",
+    "v8_config": "configs/pair_strategy_v8_pit_lineage_next_close_v3.json",
+    "identity_root": "outputs/pair_identity_pit_lineage_10y_next_close_v2_2026-08-26",
+    "master": "data/processed/pair_identity_master.csv",
+    "schedule": "data/processed/pair_identity_rebalance_schedule.csv",
+    "quarterly": "data/processed/pair_identity_quarterly_results.csv.gz",
+    "prices": "data/raw/yahoo_adjusted_close_13y_pit_us_tradable.csv",
+    "v6_pair_quarter_cache": "data/processed/pair_quarter_cache",
+    "candidate_metrics": "data/processed/v8_candidate_quarter_metrics.csv.gz",
+    "s5_manifest": "data/processed/v8_s5_parameter_ranking_input_manifest.csv.gz",
+    "v8_engine_manifest": "data/processed/v8_engine_source_manifest.json"
+  },
+  "pair_strategy_selection": {
+    "candidate_history_start": "first_successful_v6_tuned_date_inclusive",
+    "lookback_calendar_years": 3,
+    "minimum_history_quarters": 8,
+    "minimum_active_quarters": 3,
+    "minimum_trades": 10,
+    "insufficient_history_default": "S0_v6",
+    "one_standard_error_rule": true
+  },
+  "cross_pair_selection": {
+    "decision_information_cutoff": "session_before_rebalance_close",
+    "allocation_fill": "rebalance_session_close_after_that_sessions_return",
+    "first_new_pnl": "next_session_after_allocation_fill",
+    "first_known_rule": "first_successful_v6_tuned_date_strictly_before_rebalance",
+    "lookback_calendar_years": 3,
+    "minimum_history_quarters": 8,
+    "minimum_active_quarters": 3,
+    "minimum_trade_entries": 10,
+    "score": "4 * (mean_quarterly_log_return - standard_error)",
+    "tie_break": [
+      "higher_mean_quarterly_log_return",
+      "lower_quarterly_log_return_std",
+      "lower_mean_annualized_turnover",
+      "shallower_worst_quarter_max_drawdown",
+      "pair_lexicographic"
+    ],
+    "top_n": 10,
+    "target_weight_per_slot": 0.1,
+    "unused_slots": "cash",
+    "shared_ticker_policy": "greedy_skip_after_score_ranking"
+  },
+  "portfolio": {
+    "accounting": "pair_segregated_two_leg_security_ledger",
+    "transaction_cost_bps": 2.0,
+    "annual_short_borrow_bps": 30.0,
+    "cross_pair_trade_netting": false,
+    "quarterly_cross_pair_rebalance": true,
+    "daily_cross_pair_rebalance": false,
+    "incoming_active_shadow_policy": "cash_until_observable_post_close_target_is_flat",
+    "terminal_liquidation": true,
+    "benchmark": "all_eligible_equal_weight_same_clock_and_costs",
+    "benchmark_shared_ticker_policy": "pair_segregated_overlap_allowed_without_cross_pair_netting",
+    "stress_transaction_cost_bps": [5.0, 10.0, 20.0],
+    "stress_annual_short_borrow_bps": [100.0, 300.0]
+  },
+  "evaluation": {
+    "study_start_inclusive": "2016-08-26",
+    "study_end_exclusive": "2026-08-27",
+    "retrospective_allocator_holdout_rebalance": "2024-07-01",
+    "bootstrap_block_sessions": 63,
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 20260903,
+    "prospective_holdout_start": "2026-10-01",
+    "prospective_holdout_minimum_quarters": 8
+  },
+  "outputs": {
+    "root": "outputs/pair_strategy_v9_cross_pair_walkforward_top10_2026-08-26",
+    "report": "pair_strategy_v9_cross_pair_walkforward_top10_report.html"
+  }
+}

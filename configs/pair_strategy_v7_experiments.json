@@ -1,0 +1,129 @@
+{
+  "protocol": {
+    "name": "pair_strategy_v7_structural_experiments",
+    "version": 1,
+    "as_of": "2026-08-26",
+    "additive_only": true,
+    "v6_artifacts_immutable": true,
+    "research_development_sample": true,
+    "fresh_lockbox_required_after_variant_selection": true
+  },
+  "inputs": {
+    "v6_root": "outputs/pair_return_optimization_10y_train3y_2026-08-26",
+    "price_snapshot": "data/raw/yahoo_adjusted_close_10y.csv",
+    "universe_snapshot": "data/raw/sp500_current_constituents.csv",
+    "selected_schedule": "data/processed/pair_v6_selected_parameter_schedule.csv",
+    "parameter_rankings": "data/processed/pair_v6_parameter_rankings.csv.gz",
+    "strict_candidates": "data/processed/pair_v6_strict_candidates.csv.gz",
+    "vintage_summary": "data/processed/pair_v6_tuning_vintage_summary.csv",
+    "v6_oos_signals": "data/processed/pair_v6_oos_signals.csv.gz",
+    "validation_returns": "data/processed/pair_v6_validation_returns.csv.gz",
+    "market_factor_snapshot": "data/raw/v7_market_sector_etfs.csv",
+    "point_in_time_data_root": "data/point_in_time",
+    "minute_history": "data/intraday/one_minute_pair_history.parquet"
+  },
+  "frozen_mechanics": {
+    "training_calendar_years": 3,
+    "transaction_cost_bps": 2.0,
+    "cost_sensitivity_bps": 1.0,
+    "annual_short_borrow_bps": 30.0,
+    "stop_z": 4.0,
+    "signal_at_close_applies_next_session": true,
+    "outer_refit_frequency": "quarterly",
+    "same_v6_pair_selection_for_sleeve_ablations": true
+  },
+  "experiments": {
+    "01_stop_entry_gate": {
+      "enabled": true,
+      "rule": "entry_z <= abs(z) < stop_z"
+    },
+    "02_cross_quarter_carry": {
+      "enabled": true,
+      "freeze_old_model_until_flat": true,
+      "no_new_entries_after_original_outer_boundary": true,
+      "no_overlapping_same_pair_vintages": true,
+      "retain_original_exit_stop_and_max_holding": true
+    },
+    "03_half_life_holding": {
+      "enabled": true,
+      "multiplier": 2.0,
+      "rounding": "ceiling_sessions"
+    },
+    "04_candidate_supply_exposure": {
+      "enabled": true,
+      "formula": "min(1, strict_candidate_count / maximum_pairs_per_rebalance)",
+      "maximum_pairs_per_rebalance": 10
+    },
+    "05_minute_risk": {
+      "enabled": true,
+      "earnings_rule_enabled": false,
+      "bar_frequency": "1min",
+      "trigger": "abs(intraday_z_using_frozen_daily_center_scale) >= stop_z",
+      "execution": "next_complete_minute_open",
+      "maximum_staleness_minutes": 2,
+      "fail_closed_without_history": true
+    },
+    "06_grid_ic_and_ensemble": {
+      "enabled": true,
+      "oos_replay_all_97": true,
+      "ensemble_members": "training_eligible_only",
+      "ensemble_weighting": "equal_target_leg_weights",
+      "cost_after_aggregation": true
+    },
+    "07_reversal_confirmation": {
+      "enabled": true,
+      "rule": "after entry breach require abs(z_t) < abs(z_t-1) while still beyond entry",
+      "additional_numeric_parameters": 0
+    },
+    "08_subindustry": {
+      "enabled": true,
+      "primary_requires_point_in_time_gics": true,
+      "current_gics_sensitivity_is_ex_post": true,
+      "rerank_all_same_subindustry_strict_candidates_by_training_score": true
+    },
+    "09_dynamic_beta": {
+      "enabled": true,
+      "model": "causal_random_walk_kalman_alpha_beta",
+      "process_variance_ratio": 0.00001,
+      "innovation_before_close_update": true,
+      "nonpositive_beta_kill": true
+    },
+    "10_portfolio_risk_layer": {
+      "enabled": true,
+      "allocator": "inverse_volatility",
+      "pair_weight_cap": 0.2,
+      "shared_name_incidence_cap": 0.35,
+      "sector_cap": 0.4,
+      "factor_lookback_calendar_years": 3,
+      "market_etf": "SPY",
+      "sector_etfs": {
+        "Communication Services": "XLC",
+        "Consumer Discretionary": "XLY",
+        "Consumer Staples": "XLP",
+        "Energy": "XLE",
+        "Financials": "XLF",
+        "Health Care": "XLV",
+        "Industrials": "XLI",
+        "Information Technology": "XLK",
+        "Materials": "XLB",
+        "Real Estate": "XLRE",
+        "Utilities": "XLU"
+      },
+      "beta_overlay": "training_ols_spy_plus_sector_residual",
+      "overlay_rebalance": "quarterly"
+    }
+  },
+  "inference": {
+    "paired_unit": "pair_vintage",
+    "cluster_unit": "quarter",
+    "quarter_block_length": 4,
+    "bootstrap_draws": 10000,
+    "seed": 20260903,
+    "multiple_testing": "romano_wolf_max_t_across_v7_variants",
+    "primary_metric": "net_total_return_delta_vs_v6"
+  },
+  "outputs": {
+    "root": "outputs/pair_strategy_v7_experiments_2026-08-26",
+    "report": "pair_strategy_v7_experiments_report.html"
+  }
+}

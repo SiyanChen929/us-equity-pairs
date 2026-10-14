@@ -1,0 +1,58 @@
+{
+  "protocol": {
+    "name": "pair_identity_point_in_time_selection_correction",
+    "version": 1,
+    "as_of": "2026-08-26",
+    "additive_only": true,
+    "overwrite_v6": false,
+    "purpose": "Point-in-time universe replay, first-knowable identity entry, synchronized reranking bootstrap, and family-wise pair winner correction."
+  },
+  "point_in_time_data": {
+    "root": "data/point_in_time",
+    "coverage_start_inclusive": "2013-08-26",
+    "coverage_end_exclusive": "2026-08-27",
+    "security_master": "security_master.csv",
+    "sp500_membership_history": "sp500_membership_history.csv",
+    "gics_history": "gics_history.csv",
+    "daily_security_returns": "daily_security_returns.csv.gz",
+    "delisting_events": "delisting_events.csv",
+    "corporate_actions": "corporate_actions.csv",
+    "pair_first_knowable_dates": "pair_first_knowable_dates.csv",
+    "permanent_security_identifier": "security_id",
+    "delisting_return_must_be_explicit": true,
+    "historical_gics_must_be_effective_dated": true,
+    "membership_must_be_effective_dated": true
+  },
+  "legacy_diagnostic": {
+    "enabled": true,
+    "scope_label": "partial_fixed_114_first_knowable_and_selection_correction_only",
+    "master": "outputs/pair_identity_10y_evaluation_2026-08-26/data/processed/pair_identity_master.csv",
+    "quarterly_results": "outputs/pair_identity_10y_evaluation_2026-08-26/data/processed/pair_identity_quarterly_results.csv.gz",
+    "return_column": "quarter_return_2bp",
+    "known_date_column": "first_successful_v6_tuned_date",
+    "study_start_inclusive": "2016-08-26",
+    "study_end_exclusive": "2026-08-27",
+    "calendar_years": 10.001574296529018
+  },
+  "bootstrap": {
+    "draws": 10000,
+    "seed": 20260902,
+    "quarter_block_length": 4,
+    "top_k": 10,
+    "annual_block_anchor": "2016-08-26",
+    "confidence_level": 0.95,
+    "rerank_full_universe_each_draw": true
+  },
+  "multiple_testing": {
+    "primary_method": "romano_wolf_max_t",
+    "reality_check_sensitivity": true,
+    "alternative": "greater",
+    "null_mean_quarterly_log_return": 0.0,
+    "family": "all_114_fixed_pair_identities",
+    "family_wise_alpha": 0.05
+  },
+  "outputs": {
+    "root": "outputs/pair_identity_pit_selection_correction_2026-08-26",
+    "report": "point_in_time_selection_correction_report.html"
+  }
+}

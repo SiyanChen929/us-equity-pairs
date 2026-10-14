@@ -1,0 +1,98 @@
+{
+  "protocol": {
+    "name": "conditional_fixed_114_joint_conservative_sharpe_equal_weight_dinkelbach_v1",
+    "version": 1,
+    "as_of": "2026-08-26",
+    "research_status_verdict": "NOT VALIDATED",
+    "claim_scope": "retrospective_causal_allocator_iteration_conditional_on_ex_post_fixed_114",
+    "universe_is_point_in_time": false,
+    "historical_period_is_independent_oos": false,
+    "v9_outputs_are_immutable_inputs": true
+  },
+  "inputs": {
+    "v9_root": "outputs/pair_strategy_v9_cross_pair_walkforward_top10_2026-08-26",
+    "v9_freeze_manifest": "data/protocol_freeze_manifest.json",
+    "v9_reveal_manifest": "data/reveal_manifest.json",
+    "first_known_shadow_daily": "data/v9_first_known_shadow_daily.csv.gz",
+    "quarter_history": "data/v9_cross_pair_quarter_history.csv.gz",
+    "cross_pair_rankings": "data/v9_cross_pair_rankings.csv.gz",
+    "v9_allocation_events": "data/v9_allocation_events.csv",
+    "v9_portfolio_metrics": "data/v9_portfolio_metrics.csv"
+  },
+  "eligibility": {
+    "completed_quarters": 8,
+    "require_all_quarters_history_available": true,
+    "require_first_known_by_window_start": true,
+    "minimum_active_quarters": 3,
+    "minimum_trade_entries": 10,
+    "require_finite_positive_prices_at_information_cutoff": true,
+    "unavailable_or_missing_history_policy": "exclude_fail_closed"
+  },
+  "estimation": {
+    "training_window": "same_last_8_completed_quarters_for_every_candidate",
+    "daily_return_column": "net_return_2bp",
+    "expected_return": "expm1_annualized_one_standard_error_lower_bound_of_8_quarter_log_returns",
+    "quarterly_log_return_std_ddof": 1,
+    "quarterly_log_annualization": 4,
+    "covariance_estimator": "ledoit_wolf",
+    "daily_covariance_annualization": 252,
+    "minimum_daily_observations": 480,
+    "covariance_eigenvalue_floor": 1e-10,
+    "covariance_relative_eigenvalue_floor_multiplier": 1e-8,
+    "covariance_eigenvalue_floor_rule": "max(absolute_floor, mean_variance_times_relative_multiplier)",
+    "risk_free_rate": 0.0,
+    "missing_daily_return_policy": "reject_no_imputation",
+    "expected_session_calendar": "all_rows_in_frozen_daily_panel_for_the_same_8_quarters",
+    "positive_numerator_epsilon": 1e-10
+  },
+  "selection": {
+    "objective": "maximum_estimated_equal_weight_portfolio_sharpe",
+    "top_n": 10,
+    "target_weight_per_slot": 0.1,
+    "maximum_pairs_per_ticker": 1,
+    "cardinality_policy": "largest_feasible_k_at_or_below_10_with_positive_expected_return_else_cash",
+    "solver": "scipy_highs_rlt_strengthened_lifted_binary_milp_dinkelbach",
+    "solver_presolve_policy": "enabled_for_all_cardinality_expected_return_and_dinkelbach_margin_milps",
+    "lifted_pair_products": true,
+    "rlt_cardinality_equalities": true,
+    "omit_ticker_incompatible_pair_products": true,
+    "fixed_lambda_objective": "maximize_scaled_squared_return_minus_lambda_times_variance",
+    "mip_relative_gap": 0.0,
+    "per_solve_time_limit_seconds": 60.0,
+    "dinkelbach_maximum_iterations": 32,
+    "dinkelbach_residual_tolerance": 1e-9,
+    "dinkelbach_ratio_tolerance": 1e-10,
+    "dinkelbach_sharpe_certificate_tolerance": 0.001,
+    "solution_tolerance": 1e-6,
+    "candidate_order": "pair_lexicographic",
+    "matched_baseline": "maximum_sum_expected_return_same_candidates_cardinality_and_ticker_constraints",
+    "unused_slots": "cash"
+  },
+  "execution": {
+    "decision_information_cutoff": "session_before_rebalance_close",
+    "allocation_fill": "rebalance_session_close_after_that_sessions_return",
+    "first_new_pnl": "next_session_after_allocation_fill",
+    "accounting": "pair_segregated_two_leg_security_ledger",
+    "transaction_cost_bps": 2.0,
+    "annual_short_borrow_bps": 30.0,
+    "cross_pair_trade_netting": false,
+    "incoming_active_shadow_policy": "cash_until_observable_post_close_target_is_flat",
+    "terminal_liquidation": true,
+    "stress_transaction_cost_bps": [5.0, 10.0, 20.0],
+    "stress_annual_short_borrow_bps": [100.0, 300.0]
+  },
+  "evaluation": {
+    "study_start_inclusive": "2016-08-26",
+    "study_end_exclusive": "2026-08-27",
+    "retrospective_review_start": "2024-07-01",
+    "bootstrap_block_sessions": 63,
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 20260904,
+    "prospective_comparison_start": "2026-10-01",
+    "prospective_minimum_quarters": 8
+  },
+  "outputs": {
+    "root": "outputs/pair_strategy_v10_joint_sharpe_top10_2026-08-26",
+    "report": "pair_strategy_v10_joint_sharpe_top10_report.html"
+  }
+}

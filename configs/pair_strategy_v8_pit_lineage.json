@@ -1,0 +1,87 @@
+{
+  "protocol": {
+    "name": "v8_pair_centric_pit_lineage_full_panel",
+    "version": 1,
+    "as_of": "2026-08-26",
+    "purpose": "Re-run all 114 V8 pair identities after fail-closed SW and FERG US-tradable lineage correction.",
+    "development_sample": true,
+    "ranking_is_ex_post_descriptive": true,
+    "portfolio_objective_used": false,
+    "v6_v7_artifacts_immutable": true
+  },
+  "inputs": {
+    "identity_root": "outputs/pair_identity_pit_lineage_10y_2026-08-26",
+    "v7_root": "outputs/pair_strategy_v7_experiments_2026-08-26",
+    "master": "data/processed/pair_identity_master.csv",
+    "schedule": "data/processed/pair_identity_rebalance_schedule.csv",
+    "quarterly": "data/processed/pair_identity_quarterly_results.csv.gz",
+    "price_snapshot": "data/raw/yahoo_adjusted_close_13y_pit_us_tradable.csv",
+    "v6_pair_quarter_cache": "data/processed/pair_quarter_cache",
+    "minute_history": "data/intraday/one_minute_pair_history.parquet"
+  },
+  "evaluation": {
+    "study_start_inclusive": "2016-08-26",
+    "study_end_exclusive": "2026-08-27",
+    "expected_pairs": 114,
+    "expected_quarters": 41,
+    "expected_pair_quarters": 4674,
+    "training_calendar_years": 3,
+    "primary_transaction_cost_bps": 2.0,
+    "sensitivity_transaction_cost_bps": 1.0,
+    "annual_short_borrow_bps": 30.0,
+    "outer_parameter_source": "unchanged V6 97-grid one-standard-error selection",
+    "cross_pair_cutoff": false,
+    "unavailable_and_failed_quarters_are_cash": true,
+    "active_period_annualization": false,
+    "cross_quarter_carry": true
+  },
+  "strategy_candidates": [
+    {"id": "S0_v6", "complexity": 0, "stop_entry_gate": false},
+    {"id": "S1_stop_gate", "complexity": 1, "stop_entry_gate": true},
+    {"id": "S2_half_life_2x", "complexity": 2, "stop_entry_gate": true, "half_life_multiplier": 2.0},
+    {"id": "S3_reversal_confirmation", "complexity": 3, "stop_entry_gate": true, "reversal_confirmation": true},
+    {"id": "S4_kalman_beta", "complexity": 4, "stop_entry_gate": true, "dynamic_beta": true, "kalman_process_variance_ratio": 0.00001},
+    {"id": "S5_training_eligible_ensemble", "complexity": 5, "stop_entry_gate": true, "ensemble": "all_V6_training_eligible_parameters"}
+  ],
+  "strategy_selection": {
+    "information_source": "candidate OOS observations completed before the current rebalance",
+    "lookback_calendar_years": 3,
+    "minimum_history_quarters": 8,
+    "minimum_active_quarters": 3,
+    "minimum_trades": 10,
+    "primary_score": "mean_quarterly_log_return",
+    "one_standard_error_rule": true,
+    "tie_break": ["lower_quarterly_volatility", "lower_turnover", "shallower_max_drawdown", "lower_complexity", "strategy_id"],
+    "insufficient_history_default": "S0_v6"
+  },
+  "ranking": {
+    "primary_cost_bps": 2.0,
+    "adequate_availability_fraction": 0.8,
+    "adequate_active_quarters": 20,
+    "types": ["full_calendar_cagr", "robust_lower_bound", "risk_adjusted_consistency"],
+    "bootstrap": "synchronized_ten_anniversary_year_cluster",
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 20260902
+  },
+  "execution": {
+    "signal_at_close_held_next_session": true,
+    "quarterly_refit": true,
+    "old_vintage_frozen_until_exit": true,
+    "no_new_old_vintage_entries_after_boundary": true,
+    "no_overlapping_same_pair_positions": true,
+    "terminal_liquidation": true,
+    "minute_risk_enabled": true,
+    "minute_risk_historical_replay_requires_data": true,
+    "earnings_reduction_enabled": false
+  },
+  "lineage": {
+    "changed_tickers": ["FERG", "SW"],
+    "cross_venue_splice_used": false,
+    "prelisting_period_policy": "unavailable cash",
+    "us_tradable_start": {"FERG": "2021-03-11", "SW": "2024-07-08"}
+  },
+  "outputs": {
+    "root": "outputs/pair_strategy_v8_pit_lineage_2026-08-26",
+    "report": "pair_strategy_v8_pit_lineage_report.html"
+  }
+}

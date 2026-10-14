@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "equity-pairs-research"
+version = "0.1.0"
+description = "Reproducible S&P 500 sector cointegration and pairs-trading research pipeline"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Siyan Chen", email = "siyan_chen@ucsb.edu" }]
+requires-python = ">=3.11"
+dependencies = [
+  "jinja2>=3.1,<4",
+  "lxml>=5,<7",
+  "matplotlib>=3.9,<4",
+  "numpy>=2.0,<3",
+  "pandas>=2.2,<4",
+  "requests>=2.32,<3",
+  "scipy>=1.14,<2",
+  "scikit-learn>=1.5,<2",
+  "statsmodels>=0.14.4,<0.15",
+  "yfinance>=1.6.0,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<10"]
+
+[project.scripts]
+equity-pairs = "equity_pairs.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+testpaths = ["tests"]

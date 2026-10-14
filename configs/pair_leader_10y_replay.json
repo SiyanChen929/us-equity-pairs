@@ -1,0 +1,79 @@
+{
+  "protocol": {
+    "name": "pair_leader_10y_conditional_replay",
+    "version": 1,
+    "as_of": "2026-08-26",
+    "purpose": "Post-selection stability replay of the unique pair identities represented by the realized V6 top-ten pair-vintages. Pair identity is ex-post; every hedge fit and hyperparameter choice is chronological."
+  },
+  "source": {
+    "v6_output_root": "outputs/pair_return_optimization_10y_train3y_2026-08-26",
+    "v6_pair_vintage_metrics": "data/processed/pair_v6_pair_vintage_metrics.csv",
+    "leader_count_before_identity_deduplication": 10,
+    "identity_rule": "sort realized V6 pair-vintages by 2 bp net total return, take ten, then preserve the resulting unique pair identities",
+    "pair_identity_selection_is_ex_post": true
+  },
+  "data": {
+    "market_data_source": "Yahoo Finance via yfinance",
+    "price_field": "adjusted_close",
+    "download_start_inclusive": "2013-08-26",
+    "oos_start_inclusive": "2016-08-26",
+    "end_exclusive": "2026-08-27",
+    "required_training_years": 3,
+    "price_snapshot_name": "yahoo_adjusted_close_13y_leader_legs.csv",
+    "minimum_history_ratio": 0.9,
+    "repair_prices": true
+  },
+  "walk_forward": {
+    "rebalance_frequency": "quarterly",
+    "first_outer_window_starts_at_exact_oos_boundary": true,
+    "outer_windows_are_non_overlapping": true,
+    "training_rule": "all sessions in [rebalance minus three calendar years, rebalance)",
+    "outer_rule": "all sessions in [rebalance, next boundary), ending at 2026-08-27",
+    "state_reset_at_every_outer_boundary": true,
+    "terminal_liquidation": true,
+    "failed_or_unavailable_vintage_return": 0.0
+  },
+  "health": {
+    "diagnostic_scope": "pair-level core gates only; not full-universe sector BH-FDR",
+    "pair_pvalue_maximum": 0.05,
+    "require_both_legs_i1": true,
+    "require_positive_hedge_ratio": true,
+    "maximum_half_life_days": 252,
+    "maximum_hurst_exponent_exclusive": 0.5,
+    "primary_curve": "core_health_gated",
+    "secondary_curve": "always_attempt_when_history_and_tuning_are_available"
+  },
+  "hyperparameter_grid": {
+    "zscore_methods": ["sma", "ewma"],
+    "zscore_lookbacks": [10, 20, 40, 60],
+    "entry_zs": [1.25, 1.75, 2.25],
+    "exit_zs": [0.25, 0.5],
+    "maximum_holding_days": [10, 30],
+    "stop_z": 4.0,
+    "candidate_count_including_baseline": 97
+  },
+  "validation": {
+    "inner_train_sessions": 378,
+    "inner_validation_sessions": 63,
+    "inner_step_sessions": 63,
+    "purge_sessions": 1,
+    "embargo_sessions": 0,
+    "maximum_inner_folds": 5,
+    "minimum_full_training_trades": 10,
+    "minimum_pooled_validation_trades": 6,
+    "minimum_active_validation_folds": 3,
+    "selection_rule": "one_standard_error",
+    "pair_objective": "net_cagr",
+    "portfolio_objective_used": false
+  },
+  "costs": {
+    "primary_transaction_cost_bps": 2.0,
+    "frozen_sensitivity_transaction_cost_bps": 1.0,
+    "annual_short_borrow_bps": 30.0
+  },
+  "outputs": {
+    "default_root": "outputs/pair_leader_10y_replay_2026-08-26",
+    "report_name": "pair_leader_10y_replay_report.html",
+    "overwrite_v6": false
+  }
+}

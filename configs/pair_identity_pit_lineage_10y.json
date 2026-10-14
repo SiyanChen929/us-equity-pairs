@@ -1,0 +1,88 @@
+{
+  "protocol": {
+    "name": "pair_identity_pit_lineage_10y",
+    "version": 1,
+    "as_of": "2026-08-26",
+    "purpose": "Additive fixed-114 replay after fail-closed correction of Yahoo backfilled SW and FERG histories.",
+    "strategy_mutation_allowed": false
+  },
+  "immutable_sources": {
+    "v6_config": "configs/pair_optimized_10y_3y.json",
+    "v6_runner": "scripts/run_pair_optimized_10y_research.py",
+    "v6_output_root": "outputs/pair_return_optimization_10y_train3y_2026-08-26",
+    "predictive_replay_root": "outputs/pair_predictive_diagnostics_10y_train3y_2026-08-26",
+    "universe_snapshot": "outputs/pair_return_optimization_10y_train3y_2026-08-26/data/raw/sp500_current_constituents.csv",
+    "frozen_v6_price_snapshot": "outputs/pair_return_optimization_10y_train3y_2026-08-26/data/raw/yahoo_adjusted_close_10y.csv",
+    "v6_parameter_rankings": "outputs/pair_return_optimization_10y_train3y_2026-08-26/data/processed/pair_v6_parameter_rankings.csv.gz",
+    "v6_selected_schedule": "outputs/pair_return_optimization_10y_train3y_2026-08-26/data/processed/pair_v6_selected_parameter_schedule.csv",
+    "v6_strict_candidates": "outputs/pair_return_optimization_10y_train3y_2026-08-26/data/processed/pair_v6_strict_candidates.csv.gz",
+    "v6_screens_directory": "outputs/pair_return_optimization_10y_train3y_2026-08-26/data/processed/screens",
+    "predictive_metrics": "outputs/pair_predictive_diagnostics_10y_train3y_2026-08-26/data/processed/all_tuned_strict_winner_oos_metrics.csv",
+    "predictive_cost_sensitivity": "outputs/pair_predictive_diagnostics_10y_train3y_2026-08-26/data/processed/all_tuned_strict_winner_cost_sensitivity.csv",
+    "predictive_signals": "outputs/pair_predictive_diagnostics_10y_train3y_2026-08-26/data/processed/all_tuned_strict_winner_oos_signals.csv.gz",
+    "predictive_trades": "outputs/pair_predictive_diagnostics_10y_train3y_2026-08-26/data/processed/all_tuned_strict_winner_oos_trades.csv",
+    "original_identity_root": "outputs/pair_identity_10y_evaluation_2026-08-26",
+    "original_spliced_price_snapshot": "outputs/pair_identity_10y_evaluation_2026-08-26/data/raw/yahoo_adjusted_close_13y_spliced_to_frozen_v6.csv",
+    "original_screen_panel": "outputs/pair_identity_10y_evaluation_2026-08-26/data/processed/pair_identity_screen_diagnostics.csv.gz",
+    "original_pair_quarter_cache": "outputs/pair_identity_10y_evaluation_2026-08-26/data/processed/pair_quarter_cache"
+  },
+  "immutable_hashes": {
+    "v6_config_sha256": "bdec0559f17198db97404716bcf45442750782fabf2664079a9585e1a0ee0d5b",
+    "v6_runner_sha256": "e0d0905a74dda63cd5ad72a2714d3bd3fd34dd3b31968f624cd9c590ee032df4",
+    "universe_snapshot_sha256": "81d895192dc0db2c4bc0c4874adb4b21f799b75bebf6c1fb119f314f099cdd61",
+    "frozen_v6_price_snapshot_sha256": "385cc75b282230a1be749dd15250a9102d6ce2a53e5aafbeca13ea1bb426ed15",
+    "v6_parameter_rankings_sha256": "5917ae36d8c69d8da48c99d515284dafb3f96b57b8785b80782583a62d6c38ce",
+    "v6_selected_schedule_sha256": "6cf14286795668ebe3c35440671ce403587be8de5ef4596968059b0ef3cacb3d",
+    "predictive_metrics_sha256": "2735f6563448d02195569cfc19b1c230260aa041479923aba7a33d62be037a07",
+    "predictive_signals_sha256": "ed4dafb700dc446a816e415cae1ba1b21ae94365a03e0e55c11edfcad201fd8a"
+  },
+  "data": {
+    "download_start_inclusive": "2013-08-26",
+    "download_end_exclusive": "2026-08-27",
+    "required_training_years": 3,
+    "download_snapshot_name": "yahoo_adjusted_close_13y_full_universe.csv",
+    "spliced_snapshot_name": "yahoo_adjusted_close_13y_pit_us_tradable.csv",
+    "download_chunk_size": 50,
+    "download_max_retries": 3,
+    "download_backoff_factor": 1.0,
+    "download_inter_chunk_delay_seconds": 0.75,
+    "repair_prices": true,
+    "us_tradable_start": {"FERG": "2021-03-11", "SW": "2024-07-08"},
+    "predecessor_policy": "document but do not synthesize across venue/currency/session or absent delisted-ADR history"
+  },
+  "evaluation": {
+    "study_start_inclusive": "2016-08-26",
+    "study_end_exclusive": "2026-08-27",
+    "quarter_rule": "calendar-quarter intervals clipped to exact study boundaries",
+    "expected_quarter_intervals": 41,
+    "primary_path": "fixed_identity_full_panel_pit_us_tradable",
+    "primary_identity_universe": "same immutable 114 identities",
+    "expected_fixed_identity_count": 114,
+    "reported_subset": "same original 82 V6-selected identities",
+    "expected_v6_selected_identity_count": 82,
+    "expected_candidate_pairs_per_screen": 13917,
+    "universe_is_ex_post_descriptive": true,
+    "screen_eligibility_is_diagnostic_not_gating": true,
+    "cross_pair_top10_cutoff_applied": false,
+    "tuning_failure_policy": "retain as cash",
+    "zero_oos_trade_policy": "valid zero-return quarter",
+    "insufficient_history_policy": "unavailable cash",
+    "ranking_cost_bps": 2.0,
+    "ranking_is_ex_post_descriptive": true,
+    "portfolio_metrics_enabled": false
+  },
+  "bootstrap": {"method": "ten_anniversary_year_cluster_resampling", "draws": 10000, "seed": 20260901, "confidence_level": 0.95},
+  "ranking": {
+    "types": ["full_calendar_cagr", "adequate_availability_sharpe", "downside_robustness", "best_period_removed_robustness", "eligibility_frequency"],
+    "adequate_availability_minimum_fraction": 0.8,
+    "downside_robustness_components": ["max_drawdown", "worst_quarter_return", "bootstrap_cagr_ci_low"],
+    "best_period_removed_components": ["cagr_without_best_quarter", "cagr_without_best_complete_year"],
+    "scores_are_descriptive": true,
+    "no_active_period_annualization": true
+  },
+  "outputs": {
+    "default_root": "outputs/pair_identity_pit_lineage_10y_2026-08-26",
+    "report_name": "pair_identity_pit_lineage_10y_report.html",
+    "overwrite_v6": false
+  }
+}

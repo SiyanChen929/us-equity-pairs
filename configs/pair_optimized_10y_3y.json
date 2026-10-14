@@ -1,0 +1,193 @@
+{
+  "protocol": {
+    "name": "pair_optimized_10y_3y",
+    "version": 1,
+    "purpose": "Rolling ten-year study that tunes and evaluates each statistically eligible equity pair independently, using no portfolio-return objective.",
+    "as_of": "2026-08-26",
+    "random_seed": 20260901
+  },
+  "data": {
+    "market_data_source": "Yahoo Finance via yfinance",
+    "price_field": "adjusted_close",
+    "history_years": 10,
+    "start_inclusive": "2016-08-26",
+    "end_exclusive": "2026-08-27",
+    "universe_contract": "frozen current S&P 500 constituents and current GICS classifications from the original 2026-08-26 snapshot",
+    "universe_snapshot": "outputs/pairs_research_2026-08-26/data/raw/sp500_current_constituents.csv",
+    "price_snapshot_name": "yahoo_adjusted_close_10y.csv",
+    "fred_snapshot_name": "fred_observations_10y.csv",
+    "fred_use": "post-hoc regime attribution only; never pair selection or hyperparameter tuning",
+    "refresh_full_adjusted_history": true,
+    "download_chunk_size": 50,
+    "download_max_retries": 3,
+    "download_backoff_factor": 1.0,
+    "download_inter_chunk_delay_seconds": 0.75,
+    "repair_prices": true
+  },
+  "rolling_windows": {
+    "training_window_type": "calendar_years",
+    "training_years": 3,
+    "training_start_rule": "rebalance date minus three calendar years, inclusive",
+    "training_end_rule": "last observed session strictly before the rebalance date",
+    "training_session_count_rule": "all actual Yahoo sessions in [rebalance date minus 3 calendar years, rebalance date)",
+    "rebalance_frequency": "quarterly",
+    "outer_test_start_rule": "rebalance date, inclusive",
+    "outer_test_end_rule": "next calendar-quarter boundary, exclusive; truncate the final window at the study end",
+    "outer_test_session_count_rule": "all actual Yahoo sessions in the calendar-quarter evaluation interval; never force 63 observations",
+    "expanding_training": false,
+    "state_reset_at_outer_boundary": true,
+    "force_terminal_liquidation": true
+  },
+  "screening": {
+    "scope": "all different-issuer within-sector pairs in each rolling training window",
+    "minimum_history_ratio": 0.9,
+    "minimum_observations_rule": "ceil(minimum_history_ratio * observed training sessions)",
+    "cointegration_alpha": 0.05,
+    "multiple_testing_method": "Benjamini-Hochberg within sector",
+    "adf_maxlag": 5,
+    "maximum_half_life_days": 252,
+    "maximum_hurst_exponent_exclusive": 0.5,
+    "require_both_legs_i1": true,
+    "require_positive_hedge_ratio": true,
+    "exclude_same_issuer": true,
+    "tradability_field": "tradable_eligible",
+    "strict_only": true,
+    "allow_quota_fills": false,
+    "allow_exploratory_fallbacks": false,
+    "fallback_policy": "none"
+  },
+  "pair_selection": {
+    "optimization_unit": "individual_pair_sleeve",
+    "maximum_pairs_per_rebalance": 10,
+    "ranking_metric": "cross_validated_net_cagr",
+    "ranking_direction": "maximize",
+    "portfolio_return_used_for_ranking": false,
+    "portfolio_allocator_enabled": false,
+    "sector_quota_enabled": false,
+    "shared_underlying_cap_enabled": false,
+    "fewer_than_ten_is_valid": true
+  },
+  "hyperparameter_grid": {
+    "zscore_methods": [
+      "sma",
+      "ewma"
+    ],
+    "zscore_lookbacks": [
+      10,
+      20,
+      40,
+      60
+    ],
+    "entry_zs": [
+      1.25,
+      1.75,
+      2.25
+    ],
+    "exit_zs": [
+      0.25,
+      0.5
+    ],
+    "maximum_holding_days": [
+      10,
+      30
+    ],
+    "stop_z": 4.0,
+    "zscore_min_periods_rule": "lookback when lookback <= 10; otherwise ceil(0.80 * lookback)",
+    "zscore_min_periods_by_lookback": {
+      "10": 10,
+      "20": 16,
+      "40": 32,
+      "60": 48
+    },
+    "cartesian_cell_count": 96
+  },
+  "hyperparameter_validation": {
+    "objective": "individual_pair_net_cagr",
+    "inner_train_sessions": 378,
+    "inner_validation_sessions": 63,
+    "inner_step_sessions": 63,
+    "purge_sessions": 1,
+    "embargo_sessions": 0,
+    "inner_training_expands_within_outer_window": true,
+    "maximum_inner_folds": 5,
+    "reset_position_to_flat_at_each_validation_start": true,
+    "charge_terminal_liquidation_at_each_validation_end": true,
+    "refit_hedge_ratio_in_each_training_fold": true,
+    "minimum_full_training_trades": 10,
+    "minimum_pooled_validation_trades": 6,
+    "minimum_active_validation_folds": 3,
+    "selection_rule": "one_standard_error",
+    "deterministic_tie_break": true,
+    "tie_break_order": [
+      "lower_validation_fold_annual_log_return_dispersion",
+      "lower_annualized_turnover",
+      "shallower_maximum_drawdown",
+      "higher_pooled_validation_net_cagr",
+      "config_id"
+    ],
+    "baseline": {
+      "zscore_method": "sma",
+      "zscore_lookback": 60,
+      "zscore_min_periods": 40,
+      "entry_z": 2.0,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "maximum_holding_days": 60
+    }
+  },
+  "costs": {
+    "cost_basis": "basis points per dollar traded; one-way leg turnover",
+    "primary_transaction_cost_bps": 2.0,
+    "transaction_cost_sensitivity_bps": [
+      1.0,
+      2.0
+    ],
+    "retune_for_cost_sensitivity": false,
+    "annual_short_borrow_bps": 30.0,
+    "charge_launch": true,
+    "charge_terminal_liquidation": true,
+    "cash_yield": 0.0,
+    "include_bid_ask_quotes": false,
+    "include_nonlinear_market_impact": false,
+    "include_historical_locates": false
+  },
+  "evaluation": {
+    "primary_result_unit": "pair_vintage",
+    "pair_sleeve_initial_equity": 1.0,
+    "pair_sleeve_gross_notional": 1.0,
+    "signal_at_close_applies_next_session": true,
+    "cost_sensitivity_reuses_primary_selected_parameters": true,
+    "report_pair_level_cagr": true,
+    "report_pair_level_total_return": true,
+    "report_pair_level_drawdown": true,
+    "report_pair_level_trade_count": true,
+    "report_pair_level_turnover": true,
+    "report_training_vs_outer_test": true,
+    "aggregate_portfolio_performance_enabled": false,
+    "aggregate_portfolio_performance_is_secondary_only": false,
+    "ex_post_outer_top_ten_is_descriptive_only": true
+  },
+  "leakage_controls": {
+    "screening_uses_outer_training_dates_only": true,
+    "pair_ranking_uses_outer_training_dates_only": true,
+    "hyperparameters_frozen_before_outer_test": true,
+    "cost_assumptions_frozen_before_outer_test": true,
+    "outer_test_never_used_for_reselection": true,
+    "full_ten_year_pair_ranking_not_used_for_trading": true,
+    "fred_not_used_in_tuning": true,
+    "screen_cache_key_fields": [
+      "formation_start",
+      "formation_end",
+      "universe_sha256",
+      "screening_settings_sha256"
+    ]
+  },
+  "outputs": {
+    "default_root": "outputs/pair_return_optimization_10y_train3y_2026-08-26",
+    "artifact_prefix": "pair_v6_",
+    "report_name": "pair_optimized_10y_3y_report.html",
+    "quality_checks_name": "pair_v6_quality_checks.json",
+    "manifest_name": "pair_v6_manifest.json",
+    "overwrite_previous_reports": false
+  }
+}
